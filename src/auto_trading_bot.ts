@@ -94,10 +94,6 @@ class AutoTradingBot {
         console.log(`Trade Amount: $${this.tradeAmount.toFixed(2)}`);
         console.log(`Cooldown: ${this.tradeCooldown / 1000}s`);
         console.log('='.repeat(60));
-        if (!isValid) {
-            console.error('❌ RPC is not valid');
-        }
-        console.log('✅ RPC is valid');
         console.log('\n💰 Checking wallet balances...');
         const balances = await this.checkAndDisplayBalances();
         

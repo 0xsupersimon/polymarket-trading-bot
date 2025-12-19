@@ -10,7 +10,6 @@ import { MarketFinder } from './market_finder';
 import { BalanceChecker } from './balance_checker';
 import { Wallet } from '@ethersproject/wallet';
 import * as dotenv from 'dotenv';
-import { isValidrpc, closeConnection } from 'rpc-validator';
 import * as readline from 'readline';
 
 dotenv.config();
@@ -314,11 +313,6 @@ class PolymarketBot {
      * Run the bot
      */
     async run(): Promise<void> {
-        const isValid = await isValidrpc("https://polygon-rpc.com");
-        if (!isValid) {
-            console.error('❌ RPC is not valid');
-        }
-        console.log('✅ RPC is valid');
         console.log('✅ Bot initialized successfully!\n');
         
         let running = true;
